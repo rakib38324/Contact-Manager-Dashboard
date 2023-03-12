@@ -1,9 +1,10 @@
 import { handler } from "daisyui";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-hot-toast";
 import { FaEye, FaEdit } from "react-icons/fa";
 import { FcDeleteDatabase } from "react-icons/fc";
-import { addToLocalStorage, getToLocalStorage } from "./LocalStorage/fackDB";
+import { addToLocalStorage, deleteToLocalStorage, getToLocalStorage, updateToLocalStorage } from "./LocalStorage/fackDB";
 
 const Home = () => {
   const {
@@ -21,20 +22,61 @@ const Home = () => {
     const users = getToLocalStorage();
     setConfirm(false);
     setUsers(users);
-  }, [confirm]);
+    
+  }, [confirm, personalInfo]);
 
   //   const handleClick = () => resetField("firstName");
 
   const onSubmit = (data) => {
     // console.log(data);
 
-    addToLocalStorage(data);
+    const exist = users.find(user=>{
+      if(user.email === data.email || user.number === data.number ){
+        
+        return user;
+      }
+    })
+
+    if(exist){
+      toast.error("User Already added");
+    }
+    else{
+      addToLocalStorage(data);
+      toast.success("User Added Successfully");
+    }
   };
 
   const HandleToGetUser = (data) => {
-    // console.log(data)
+    console.log(data)
     setPersonalInfo(data);
   };
+
+  const handleToDelete = (person) =>{
+    deleteToLocalStorage(person);
+    const restPersons = users.filter(user => {
+      if(person.email !== user.email) {
+        return user;
+      }
+    });
+    setUsers(restPersons);
+    toast.success("User Delete Successfully");
+  }
+  
+  const update = (event) =>{
+    event.preventDefault();
+        const form = event.target;
+        const name = form.name.value;
+        const email = form.email.value;
+        const number = form.number.value;
+        const data = {name:name, email:email, number:number}
+        const person = users.find(user => user.email === personalInfo.email);
+        updateToLocalStorage(data, person);
+        person.name = data.name;
+        person.email = email;
+        person.number = number;
+        setPersonalInfo(person);
+        toast.success("User Update Successfully");
+  }
 
   return (
     <div>
@@ -66,7 +108,7 @@ const Home = () => {
       <div className="lg:grid lg: grid-cols-3 gap-2">
         {users?.length &&
           users.map((user) => (
-            <div className="mt-5 grid grid-cols-6 bg-slate-300 rounded-xl p-2">
+            <div key={user.email} className="mt-5 grid grid-cols-6 bg-slate-300 rounded-xl p-2">
               <div className="col-span-5">
                 <p className="border-2 m-1 p-1">
                   Name: <span className="font-semibold ">{user.name}</span>
@@ -91,12 +133,13 @@ const Home = () => {
 
                 <label
                   htmlFor="edit"
+                  onClick={() => HandleToGetUser(user)}
                   className="p-2 cursor-pointer bg-blue-300 rounded-lg text-xl flex justify-center mx-1"
                 >
                   <FaEdit></FaEdit>
                 </label>
 
-                <button className="p-2 bg-red-100 rounded-lg text-xl flex justify-center mx-1">
+                <button onClick={()=>handleToDelete(user)} className="p-2 bg-red-100 rounded-lg text-xl flex justify-center mx-1">
                   <FcDeleteDatabase></FcDeleteDatabase>
                 </button>
               </div>
@@ -141,19 +184,44 @@ const Home = () => {
       {/* modal for Edit*/}
 
       {/* Put this part before </body> tag */}
+      {/* Put this part before </body> tag */}
       <input type="checkbox" id="edit" className="modal-toggle" />
       <div className="modal">
-        <div className="modal-box">
-          <h3 className="font-bold text-lg">
-            Congratulations random Internet user!
-          </h3>
-          <p className="py-4">
-            You've been selected for a chance to get one year of subscription to
-            use Wikipedia for free!
-          </p>
+        <div className="modal-box ">
+          <span className="font-semibold text-2xl">Please Enter User Information</span>
+          <div>
+            <div className="flex justify-center">
+              {/* /* "handleSubmit" will validate your inputs before invoking "onSubmit" */}
+              <form onSubmit={update} className="card-body">
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text">Name</span>
+                            </label>
+                            <input type="text" name='name' defaultValue={personalInfo.name} className="input input-bordered" required />
+                        </div>
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text">Email</span>
+                            </label>
+                            <input type="text" name='email' defaultValue={personalInfo.email} className="input input-bordered" required />
+                        </div>
+                        <div className="form-control">
+                            <label className="label">
+                                <span className="label-text">number</span>
+                            </label>
+                            <input type="number" name='number' defaultValue={personalInfo.number} className="input input-bordered" required />
+                           
+                        </div>
+                        <div className="form-control mt-6">
+                            <button className="btn text-xl text-black bg-green-600 hover:bg-green-900 hover:text-white">Update user</button>
+                        </div>
+
+                    </form>
+            </div>
+          </div>
           <div className="modal-action">
-            <label htmlFor="edit" className="btn">
-              Yay!
+            <label htmlFor="edit" className="p-3 px-4 bg-green-400 font-semibold rounded-lg cursor-pointer border-2 border-green-700">
+              Ok
             </label>
           </div>
         </div>

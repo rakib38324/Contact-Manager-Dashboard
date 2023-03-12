@@ -1,5 +1,4 @@
 function addToLocalStorage(person){
-    console.log(person)
     
     const persons = getToLocalStorage();
     // console.log(persons)
@@ -19,7 +18,6 @@ function getToLocalStorage(){
     const stringifiedPersons = localStorage.getItem("personsData");
     // console.log(stringifiedPersons);
     if(stringifiedPersons){
-        // console.log(stringifiedPersons)
         return JSON.parse(stringifiedPersons);
     }
 
@@ -30,8 +28,23 @@ function getToLocalStorage(){
 
 
 
-function updateToLocalStorage(person){
+function updateToLocalStorage(data, person){
+    const users = getToLocalStorage();
+    const user = users.find(user => user.email === person.email);
+    user.name = data.name;
+    user.email = data.email;
+    user.number = data.number;
+    localStorage.setItem("personsData", JSON.stringify(users));
 
 }
 
-export {addToLocalStorage,getToLocalStorage}
+function deleteToLocalStorage(person){
+    const users = getToLocalStorage();
+    console.log(users);
+    localStorage.clear("personsData");
+    const restUsers = users.filter(user => user.email !== person.email);
+    localStorage.setItem("personsData", JSON.stringify(restUsers));
+
+}
+
+export {addToLocalStorage,getToLocalStorage,deleteToLocalStorage, updateToLocalStorage}
